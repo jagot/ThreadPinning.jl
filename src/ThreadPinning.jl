@@ -124,6 +124,7 @@ end end
 
 # exports
 export threadinfo,
+       threadinfo_pluto,
        pinthreads,
        pinthreads_likwidpin,
        pinthread,

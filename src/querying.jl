@@ -29,12 +29,12 @@ end
 """
 Print the affinity masks of all Julia threads.
 """
-function print_affinity_masks(; kwargs...)
+function print_affinity_masks(io = stdout; kwargs...)
     for tid in 1:nthreads()
         mask = uv_thread_getaffinity(tid)
         str = _affinity_mask_to_string(mask; kwargs...)
-        print(rpad("$(tid):", 5))
-        println(str)
+        print(io, rpad("$(tid):", 5))
+        println(io, str)
     end
     return nothing
 end
