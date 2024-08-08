@@ -268,11 +268,13 @@ function visualization(io = getstdout();
             if blocksize_was_numa && groupby in (:sockets, :socket)
                 blocksize = length(SysInfo.numa(SysInfo.cpuid_to_numanode(cpuid); sys))
             end
+            multiple_occupancy = count(==(cpuid), threads_cpuids) > 1
+            on_ht = (hyperthreads && SysInfo.ishyperthread(cpuid; sys))
             if color
                 if cpuid in threads_cpuids
-                    colorval = if count(==(cpuid), threads_cpuids) > 1
+                    colorval = if multiple_occupancy
                         :red
-                    elseif (hyperthreads && SysInfo.ishyperthread(cpuid; sys))
+                    elseif on_ht
                         :light_magenta
                     else
                         :yellow
@@ -292,7 +294,9 @@ function visualization(io = getstdout();
                 end
             else
                 if cpuid in threads_cpuids
-                    printstyled(io, logical ? id(cpuid) : cpuid; bold = true)
+                    printstyled(io, logical ? id(cpuid) : cpuid,
+                        multiple_occupancy ? "!" : "",
+                        on_ht ? "h" : ""; bold = true)
                 else
                     print(io, "_")
                 end
@@ -337,11 +341,19 @@ function visualization(io = getstdout();
         print(io, " = $(threadslabel) thread")
         if hyperthreads
             print(io, ", ")
-            printstyled(io, "#"; bold = true, color = color ? :light_magenta : :default)
+            if color
+                printstyled(io, "#"; bold = true, color = color ? :light_magenta : :default)
+            else
+                print(io, "h")
+            end
             print(io, " = $(threadslabel) thread on HT")
         end
         print(io, ", ")
-        printstyled(io, "#"; bold = true, color = color ? :red : :default)
+        if color
+            printstyled(io, "#"; bold = true, color = color ? :red : :default)
+        else
+            print(io, "!")
+        end
         print(io, " = >1 $(threadslabel) thread")
         if efficiency
             print(io, ", ")
